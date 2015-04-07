@@ -61,12 +61,17 @@
 #define RESUME_LABEL    "Resume playback"
 #define VOLUME_LABEL    "Volume:"
 
+#define TONE_COUNT (5) //base number of threads/tones
+#define TONE_MAX (15) //Maximum number of threads
+#define TONE_MIN (1)
+
 
 AudioTest::AudioTest()
     :   m_pullTimer(new QTimer(this))
     ,   m_modeButton(0)
     ,   m_suspendResumeButton(0)
     ,   m_audioDeviceBox(0)
+    ,   numberOfTones(TONE_COUNT)
 
 {
 
@@ -82,28 +87,38 @@ void AudioTest::Setup(){
 
     //Set up the audio devices
     qDebug() << "Setting up audio devices";
-    for(int i=0; i<TONE_COUNT; i++){
-        //tone(toneduration(seconds), frequency(hz), parent)
-        qDebug() << "creating tones ["<<i<<"]";
-        Tones[i] = new tone(1, 200+(i*10), NULL);
-        audioThreads[i] = new QThread;
 
-        connect (this->m_volumeSlider, SIGNAL(valueChanged(int)), Tones[i], SLOT(OnVolumeChanged(int)) );
-        connect(this, SIGNAL(Start_Audio()), Tones[i], SLOT(StartPlaying()) );
+    for(int i=0; i<numberOfTones; i++){
+        AddTone(i);
 
-        Tones[i]->moveToThread(audioThreads[i]);
-        audioThreads[i]->start();
+        //start the tone players
+        qDebug() << "Starting players";
+        emit(this->Start_Audio());
+        disconnect(this, SIGNAL(Start_Audio()), Tones[i], SLOT(DoStartPlaying()) );
     }
-
-    //start the tone players
-    qDebug() << "Starting players";
-    emit(this->Start_Audio());
 
     currentTone = 0;
 
     qDebug() << "Creating new Packetcapture thread";
     PacketCaptureThread = new QThread();
+    //setup happens later
 
+}
+
+//adds a new tone and thread and starts it
+void AudioTest::AddTone(int i){
+
+    qDebug() << "Adding new tone["<<i<<"]";
+    //tone(toneduration(seconds), frequency(hz), parent)
+    Tones.append(  new tone(1, 200+(i*i), NULL)  );
+    audioThreads.append( new QThread );
+
+    //signals needed to talk to tone after moved to another thread
+    connect (this->m_volumeSlider, SIGNAL(valueChanged(int)), Tones[i], SLOT(OnVolumeChanged(int)) );
+    connect(this, SIGNAL(Start_Audio()), Tones[i], SLOT(DoStartPlaying()) );
+
+    Tones[i]->moveToThread(audioThreads[i]);
+    audioThreads[i]->start();
 }
 
 //set up the graphical elements
@@ -155,6 +170,22 @@ void AudioTest::initializeWindow()
    pcap_freealldevs( alldevs);
    qDebug() << "devices freed";
 
+   qDebug()<< "creating tonecount SpinBox";
+   m_numberOfTonesLabel = new QLabel("Number of Tones");
+
+   m_numberOfTones = new QSpinBox();
+   m_numberOfTones->setWhatsThis("Set the number of simultaneous tone players");
+   m_numberOfTones->setMaximum(TONE_MAX);
+   m_numberOfTones->setMinimum(TONE_MIN);
+   m_numberOfTones->setValue(numberOfTones);
+
+   QHBoxLayout *toneChooserLayoutBox = new QHBoxLayout;
+   toneChooserLayoutBox->addWidget(m_numberOfTonesLabel);
+   toneChooserLayoutBox->addWidget(m_numberOfTones);
+
+   layout->addLayout(toneChooserLayoutBox);
+   connect(m_numberOfTones, SIGNAL(valueChanged(int)), this, SLOT(DoNumberOfTonesChanged(int)) );
+   qDebug() << "tone number chooser created";
 
     qDebug() << "Creating volumeSlider";
     QHBoxLayout *volumeBox = new QHBoxLayout;
@@ -175,17 +206,16 @@ void AudioTest::initializeWindow()
     m_frequencySlider->setSingleStep(1);
     m_frequencySlider->setSliderPosition(4);
 
-    qDebug() << "Frequency slider added: connecting...";
     connect(m_frequencySlider, SIGNAL(valueChanged(int)), this, SLOT(frequencyChanged(int)));
 
-    qDebug() << "Frequency slider added: connecting...connected!";
+    qDebug() << "Frequency slider added";
 
-    qDebug() << "adding widgets to QBox layout";
+    qDebug() << "adding sliders to slider layout";
     volumeBox->addWidget(m_volumeLabel);
     volumeBox->addWidget(m_volumeSlider);
     volumeBox->addWidget(m_frequencySlider);
 
-    qDebug() << "adding Sliders to main layout ";
+    qDebug() << "adding Slider layout to main layout ";
     layout->addLayout(volumeBox);
 
     QPushButton* m_pcapButton = new QPushButton("Start Packet Music", this);
@@ -221,6 +251,46 @@ void AudioTest::PcapButtonPressed(){
     PacketCaptureThread->start();
 
     emit( SIGNAL_BEGIN_CAPTURE() );
+}
+
+void AudioTest::DoNumberOfTonesChanged(int value){
+
+    qDebug() << Q_FUNC_INFO << value << numberOfTones << Tones.size();
+    if(Tones.size() < value ){ //Tones.size() SHOULD be same as audioThreads.size()
+        for( int i=Tones.size(); i< value; i++){
+            //Tones[i] doesn't exists and needs to be added
+            AddTone(i);
+            //emit( this->Start_Audio() );
+            qDebug() << "adding new tone";
+            connect(this, SIGNAL(Start_Audio()), Tones[i], SLOT(DoStartPlaying()) );
+            emit( this->Start_Audio() );
+            disconnect(this, SIGNAL(Start_Audio()), Tones[i], SLOT(DoStartPlaying()) );
+        }
+    }else if( value > numberOfTones && value < Tones.size() ){ //tone already exists and needs resuming
+        for( int i=numberOfTones; i< value; i++){
+
+            qDebug() << "resuming previously made toneplayer";
+            //connect, send signal, disconnect
+            connect(this, SIGNAL(Resume_Audio()), Tones[i], SLOT(DoResumeAudio()) );
+            emit( this->Resume_Audio() );
+            disconnect(this, SIGNAL(Resume_Audio()), Tones[i], SLOT(DoResumeAudio()) );
+
+        }
+    }else if(Tones.size() > value ){
+        for(int i= value; i<Tones.size(); i++){
+
+            qDebug() << "pausing the tone["<<i<<"]";
+            //turn these end tones off
+            connect(this, SIGNAL(Pause_Audio()), Tones[i], SLOT(DoPauseAudio()) );
+            emit( this->Pause_Audio() );
+            disconnect(this, SIGNAL(Pause_Audio()), Tones[i], SLOT(DoPauseAudio()) );
+        }
+    }else{
+        //do nothing if its the same size
+    }
+    //adjust the iterator for other stuff
+    numberOfTones = value;
+
 }
 
 AudioTest::~AudioTest()
@@ -313,7 +383,7 @@ void AudioTest::SetFrequency(int frequency){
 
     currentTone++;
 
-    //resetting the tone counter
-    if(currentTone >= TONE_COUNT)
+    //resetting the tone iterator
+    if(currentTone >= numberOfTones)
         currentTone = 0;
 }

@@ -34,7 +34,9 @@ public slots:
     void OnVolumeChanged(int value);
     void Process();
 
-    void StartPlaying();
+    void DoResumeAudio();
+    void DoPauseAudio();
+    void DoStartPlaying();
 
 };
 

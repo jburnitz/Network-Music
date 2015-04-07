@@ -23,33 +23,43 @@ tone::tone(int volumePercent, int frequency, QObject* parent)
         qWarning() << "Default format not supported - trying to use nearest";
         m_format = info.nearestFormat(m_format);
     }
+    m_audioOutput = 0;
 
+    //creating this own generator may be going away with a generator reference from parent
     m_generator = new Generator(m_format, DurationSeconds*1000000, frequency, this);
 
-    /*
-    m_audioOutput = 0;
-    m_audioOutput = new QAudioOutput(m_device, m_format, this);
-    m_audioOutput->setVolume(qreal(volumePercent/100.0f));
-    m_generator->start();
-
-   //m_volumeSlider->setValue(int(m_audioOutput->volume()*100.0f));
-
-   // thread = new QThread;
-    //m_audioOutput->moveToThread(thread);
-    m_audioOutput->start(m_generator);
-    */
 }
-void tone::StartPlaying(){
-    m_audioOutput = 0;
+void tone::DoStartPlaying(){
+
+    //delete m_audioOutput;
+
+    //m_audioOutput = 0;
     m_audioOutput = new QAudioOutput(m_device, m_format, this);
     m_audioOutput->setVolume(qreal(15/100.0f));
     m_generator->start();
 
-   //m_volumeSlider->setValue(int(m_audioOutput->volume()*100.0f));
-
-   // thread = new QThread;
-    //m_audioOutput->moveToThread(thread);
     m_audioOutput->start(m_generator);
+}
+
+void tone::DoResumeAudio(){
+
+    //bad assumption
+    if( !m_generator->isOpen() ){
+        m_generator->start();
+    }
+    if(m_audioOutput == 0){ // 0 is null, right?
+        m_audioOutput = new QAudioOutput(m_device, m_format, this);
+        m_audioOutput->setVolume(qreal(15/100.0f));
+        m_audioOutput->start(m_generator);
+    }
+
+    m_audioOutput->resume();
+}
+
+//pauses the player if needed
+void tone::DoPauseAudio(){
+    qDebug() << "Pausing on thread" << QThread::currentThreadId();
+    m_audioOutput->suspend();
 }
 
 void tone::OnVolumeChanged(int value){

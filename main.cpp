@@ -49,8 +49,8 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
     app.setApplicationName("bleepin computer");
 
-    QSplashScreen splash(QPixmap("splash.jpg"));
-    splash.show();
+    //QSplashScreen splash(QPixmap("splash.jpg"));
+    //splash.show();
 
     AudioTest audio;
 

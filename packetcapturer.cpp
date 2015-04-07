@@ -4,6 +4,8 @@
 
 #include <qdebug.h>
 
+#include <QApplication>
+
 namespace packetprocess {
 
 u_short recentFreq = 100;
@@ -146,7 +148,7 @@ PacketCapturer::PacketCapturer(const char *deviceName){
     qDebug() << Q_FUNC_INFO << "Opening Device" << dev;
     handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
     if (handle == NULL) {
-        qDebug() << "Couldn't open device" << dev << errbuf;
+        qDebug() << Q_FUNC_INFO << "Couldn't open device" << dev << errbuf;
         exit(-1);
     }
     // Compile and apply the filter

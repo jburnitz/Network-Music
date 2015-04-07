@@ -15,7 +15,9 @@
 #include <QTimer>
 #include <QHash>
 
-#define TONE_COUNT (5)
+#include <QSpinBox>
+
+
 
 class PacketCapturer;
 
@@ -35,12 +37,14 @@ private:
     void initializeWindow();
     void initializeAudio();
     void createAudioOutput();
+    void AddTone(int i);
 
     QByteArray* CreateToneBuffer(const QAudioFormat &format, int frequency);
 
+    //currently unused
     QTimer *m_pullTimer;
 
-    // Owned by layout
+    //graphical elements
     QPushButton *m_modeButton;
     QPushButton *m_suspendResumeButton;
     QComboBox *m_networkDeviceBox;
@@ -48,12 +52,17 @@ private:
     QLabel *m_volumeLabel;
     QSlider *m_volumeSlider;
     QSlider *m_frequencySlider;
+    QSpinBox *m_numberOfTones;
+    QLabel *m_numberOfTonesLabel;
 
     QHash<int, Generator*> toneGenerators;
     QHash<int, QByteArray*> toneBuffers;
 
-    tone* Tones[TONE_COUNT];
-    QThread* audioThreads[TONE_COUNT];
+    int numberOfTones;
+    //tone* Tones[TONE_COUNT];
+    QList<tone*> Tones;
+    //QThread* audioThreads[TONE_COUNT];
+    QList<QThread*> audioThreads;
 
     QThread* PacketCaptureThread;
 
@@ -64,6 +73,7 @@ private:
 
 private slots:
     void deviceChanged(int index);
+    void DoNumberOfTonesChanged(int value);
 
     void frequencyChanged(int frequency);
     void SetFrequency(int frequency);
@@ -71,6 +81,8 @@ private slots:
 
 signals:
    void VolumeChanged(int);
+   void Resume_Audio();
+   void Pause_Audio();
    void Start_Audio();
    void SIGNAL_BEGIN_CAPTURE();
 };
