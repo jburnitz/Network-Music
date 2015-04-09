@@ -42,6 +42,7 @@
 #include <QAudioOutput>
 #include <QDebug>
 #include <QVBoxLayout>
+
 #include <qmath.h>
 #include <qendian.h>
 
@@ -55,8 +56,6 @@
 #include "tone.h"
 #include "packetcapturer.h"
 
-#define PUSH_MODE_LABEL "Enable push mode"
-#define PULL_MODE_LABEL "Enable pull mode"
 #define SUSPEND_LABEL   "Suspend playback"
 #define RESUME_LABEL    "Resume playback"
 #define VOLUME_LABEL    "Volume:"
@@ -65,7 +64,7 @@
 #define TONE_MAX (15) //Maximum number of threads
 #define TONE_MIN (1)
 
-
+/** \abstract Controller class that manages the tone players and receives input from pcap */
 AudioTest::AudioTest()
     :   m_pullTimer(new QTimer(this))
     ,   m_modeButton(0)
@@ -103,22 +102,6 @@ void AudioTest::Setup(){
     PacketCaptureThread = new QThread();
     //setup happens later
 
-}
-
-//adds a new tone and thread and starts it
-void AudioTest::AddTone(int i){
-
-    qDebug() << "Adding new tone["<<i<<"]";
-    //tone(toneduration(seconds), frequency(hz), parent)
-    Tones.append(  new tone(1, 200+(i*i), NULL)  );
-    audioThreads.append( new QThread );
-
-    //signals needed to talk to tone after moved to another thread
-    connect (this->m_volumeSlider, SIGNAL(valueChanged(int)), Tones[i], SLOT(OnVolumeChanged(int)) );
-    connect(this, SIGNAL(Start_Audio()), Tones[i], SLOT(DoStartPlaying()) );
-
-    Tones[i]->moveToThread(audioThreads[i]);
-    audioThreads[i]->start();
 }
 
 //set up the graphical elements
@@ -222,6 +205,13 @@ void AudioTest::initializeWindow()
     connect( m_pcapButton, SIGNAL(clicked()), this, SLOT(PcapButtonPressed()) );
     layout->addWidget(m_pcapButton);
 
+    m_statusBar = new QStatusBar();
+    m_statusBarLabelString = new QString("ready");
+    m_statusBarLabel = new QLabel( *m_statusBarLabelString);
+    m_statusBar->addPermanentWidget(m_statusBarLabel, 1);
+
+    layout->addWidget(m_statusBar);
+
     window->setLayout(layout.data());
 
     layout.take(); // ownership transferred
@@ -233,6 +223,22 @@ void AudioTest::initializeWindow()
 
     qDebug() << "finished setting up GUI";
 
+}
+
+//adds a new tone and thread and starts it
+void AudioTest::AddTone(int i){
+
+    qDebug() << "Adding new tone["<<i<<"]";
+    //tone(toneduration(seconds), frequency(hz), parent)
+    Tones.append(  new tone(1, 200+(i*i), NULL)  );
+    audioThreads.append( new QThread );
+
+    //signals needed to talk to tone after moved to another thread
+    connect (this->m_volumeSlider, SIGNAL(valueChanged(int)), Tones[i], SLOT(OnVolumeChanged(int)) );
+    connect(this, SIGNAL(Start_Audio()), Tones[i], SLOT(DoStartPlaying()) );
+
+    Tones[i]->moveToThread(audioThreads[i]);
+    audioThreads[i]->start();
 }
 
 void AudioTest::PcapButtonPressed(){
@@ -249,6 +255,8 @@ void AudioTest::PcapButtonPressed(){
 
     qDebug() << "Starting pkThread";
     PacketCaptureThread->start();
+
+    m_statusBarLabel->setText("playing");
 
     emit( SIGNAL_BEGIN_CAPTURE() );
 }
@@ -368,10 +376,10 @@ void AudioTest::frequencyChanged(int frequency){
 
 void AudioTest::SetFrequency(int frequency){
 
-    if(frequency < 100)
-        frequency = 100;
-    else if(frequency > 1000)
-        frequency = 1000;
+    if(frequency < 50)
+        frequency = frequency*frequency;
+   // else if(frequency > 1000)
+        //frequency = 1000;
 
     if( !toneBuffers.contains(frequency) ){
         qDebug() << Q_FUNC_INFO << "Buffer Frequency miss for :" << frequency << " hz";
@@ -386,4 +394,6 @@ void AudioTest::SetFrequency(int frequency){
     //resetting the tone iterator
     if(currentTone >= numberOfTones)
         currentTone = 0;
+
+    //m_statusBarLabelString
 }

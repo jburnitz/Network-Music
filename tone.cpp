@@ -6,7 +6,7 @@
 
 const int DurationSeconds = 1;
 
-
+/** \abstract Container that manages the audio playing of individual tones */
 tone::tone(int volumePercent, int frequency, QObject* parent)
 {
     m_device = QAudioDeviceInfo::defaultOutputDevice();
@@ -63,7 +63,6 @@ void tone::DoPauseAudio(){
 }
 
 void tone::OnVolumeChanged(int value){
-    qDebug() << Q_FUNC_INFO << "sound value: " << value;
     m_audioOutput->setVolume(qreal(value/100.0f));
 }
 

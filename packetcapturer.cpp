@@ -110,16 +110,17 @@ void Callback_ProcessPacket(u_char *useless, const pcap_pkthdr *pkthdr, const u_
         ((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_sport) );
         */
 
-    //((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_dport)&8191 );
+    ((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_dport)&511 );
+    ((PacketCapturer*)parent)->ChangeEmitter( (ntohs(tcp->th_dport)&511) +5);
     //((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_sport)&8191 );
-    ((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_dport)&1023|ntohs(tcp->th_sport) );
+    //((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_dport)&1023|ntohs(tcp->th_sport) );
 
-    u_short addr = ntohl((ip->ip_dst.s_addr)&0xFFF);
+    //u_short addr = ntohl((ip->ip_dst.s_addr)&0xFFF);
 
    //if(addr == recentFreq)
-        ((PacketCapturer*)parent)->ChangeEmitter( addr );
+        //((PacketCapturer*)parent)->ChangeEmitter( addr );
 
-    recentFreq = addr;
+    //recentFreq = addr;
 
     //the remaining bytes is the TCP data...do I care?
     //payload = (u_char *)(packet + SIZE_ETHERNET + size_ip + size_tcp);

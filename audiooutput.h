@@ -14,6 +14,7 @@
 #include <QSlider>
 #include <QTimer>
 #include <QHash>
+#include <QStatusBar>
 
 #include <QSpinBox>
 
@@ -47,13 +48,22 @@ private:
     //graphical elements
     QPushButton *m_modeButton;
     QPushButton *m_suspendResumeButton;
+
     QComboBox *m_networkDeviceBox;
+
     QComboBox *m_audioDeviceBox;
+
     QLabel *m_volumeLabel;
     QSlider *m_volumeSlider;
+
     QSlider *m_frequencySlider;
+
     QSpinBox *m_numberOfTones;
     QLabel *m_numberOfTonesLabel;
+
+    QStatusBar *m_statusBar;
+    QLabel *m_statusBarLabel;
+    QString *m_statusBarLabelString;
 
     QHash<int, Generator*> toneGenerators;
     QHash<int, QByteArray*> toneBuffers;

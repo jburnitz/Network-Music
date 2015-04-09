@@ -3,6 +3,7 @@
 #include <qendian.h>
 #include <QDebug>
 
+/** \abstract Acts as a file type device to get audio from */
 Generator::Generator(const QAudioFormat &format, qint64 durationUs, int sampleRate, QObject *parent) : QIODevice(parent), m_pos(0)
 {
     frequency = sampleRate;
@@ -30,6 +31,7 @@ void Generator::setFrequency(int value){
     frequency=value;
 }
 
+/** Generates a buffer of pure tones */
 void Generator::generateData(const QAudioFormat &format, qint64 durationUs)
 {
     const int channelBytes = format.sampleSize() / 8;
