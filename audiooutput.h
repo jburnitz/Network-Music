@@ -24,6 +24,7 @@ class PacketCapturer;
 
 class tone;
 class Generator;
+class ToneManager;
 
 class AudioTest : public QMainWindow
 {
@@ -40,41 +41,26 @@ private:
     void createAudioOutput();
     void AddTone(int i);
 
-    QByteArray* CreateToneBuffer(const QAudioFormat &format, int frequency);
-
     //currently unused
     QTimer *m_pullTimer;
 
     //graphical elements
-    QPushButton *m_modeButton;
-    QPushButton *m_suspendResumeButton;
-
     QComboBox *m_networkDeviceBox;
-
     QComboBox *m_audioDeviceBox;
-
     QLabel *m_volumeLabel;
     QSlider *m_volumeSlider;
-
     QSlider *m_frequencySlider;
-
     QSpinBox *m_numberOfTones;
     QLabel *m_numberOfTonesLabel;
-
     QStatusBar *m_statusBar;
     QLabel *m_statusBarLabel;
+
+    //useless?
     QString *m_statusBarLabelString;
 
-    QHash<int, Generator*> toneGenerators;
-    QHash<int, QByteArray*> toneBuffers;
-
-    int numberOfTones;
-    //tone* Tones[TONE_COUNT];
-    QList<tone*> Tones;
-    //QThread* audioThreads[TONE_COUNT];
-    QList<QThread*> audioThreads;
 
     QThread* PacketCaptureThread;
+    QThread* ToneManagerThread;
 
     PacketCapturer* pk;
 
@@ -83,10 +69,6 @@ private:
 
 private slots:
     void deviceChanged(int index);
-    void DoNumberOfTonesChanged(int value);
-
-    void frequencyChanged(int frequency);
-    void SetFrequency(int frequency);
     void PcapButtonPressed();
 
 signals:
