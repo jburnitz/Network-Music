@@ -2,7 +2,7 @@
 #define TONEMANAGER_H
 
 class tone;
-class Generator;
+
 class QByteArray;
 class QAudioFormat;
 
@@ -24,36 +24,24 @@ public:
     ~ToneManager();
 
 protected:
-
-    QHash<int, Generator*> toneGenerators;
-    QHash<int, QByteArray*> toneBuffers;
+    void AddTone(int i);
 
     int numberOfTones;
 
-    QByteArray* CreateToneBuffer(const QAudioFormat &format, int frequency);
-
-    /*isomorphic datastructures. Consider:
-    class ToneObject{
-
-        public:
-            tone* theTone;
-            QThread* theThread;
-    };
-
-    //or
-    struct ToneObject{
-        tone* theTone;
-        QThread* theThread;
-    };
-
-    */
+    QHash<int, QByteArray*> toneBuffers;
     QList<ToneObject> Tones;
-    //QList<QThread*> audioThreads;
 
 public slots:
-    void SLOT_NumberOfTonesChanged(int value);
-
+    void SLOT_NumberOfTonesChanged(int newNumberOfTones);
+    void SLOT_VolumeChanged(int newVolume);
     void SLOT_SetFrequency(int frequency);
+
+    void SLOT_InitializeTones();
+
+signals:
+    void Resume_Audio();
+    void Pause_Audio();
+    void Start_Audio();
 };
 
 #endif // TONEMANAGER_H

@@ -19,9 +19,7 @@
 #include <QSpinBox>
 
 
-
 class PacketCapturer;
-
 class tone;
 class Generator;
 class ToneManager;
@@ -32,21 +30,17 @@ class AudioTest : public QMainWindow
 
 public:
     AudioTest();
-    void Setup();
+    //void Setup();
     ~AudioTest();
 
 private:
     void initializeWindow();
     void initializeAudio();
     void createAudioOutput();
-    void AddTone(int i);
-
-    //currently unused
-    QTimer *m_pullTimer;
 
     //graphical elements
     QComboBox *m_networkDeviceBox;
-    QComboBox *m_audioDeviceBox;
+    //QComboBox *m_audioDeviceBox;
     QLabel *m_volumeLabel;
     QSlider *m_volumeSlider;
     QSlider *m_frequencySlider;
@@ -58,10 +52,12 @@ private:
     //useless?
     QString *m_statusBarLabelString;
 
-
-    QThread* PacketCaptureThread;
+    //handling the tones
+    ToneManager* toneManager;
     QThread* ToneManagerThread;
+    QThread* PacketCaptureThread;
 
+    //the packetcapturer, could be a singleton? probably
     PacketCapturer* pk;
 
     int currentTone;
@@ -73,9 +69,7 @@ private slots:
 
 signals:
    void VolumeChanged(int);
-   void Resume_Audio();
-   void Pause_Audio();
-   void Start_Audio();
+
    void SIGNAL_BEGIN_CAPTURE();
 };
 

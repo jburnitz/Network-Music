@@ -27,6 +27,8 @@ public:
     QByteArray* m_buffer;
     qint64 m_pos;
 
+    static QByteArray* GenerateData(const QAudioFormat &format, qint64 durationUs);
+
 private:
     void generateData(const QAudioFormat &format, qint64 durationUs);
 

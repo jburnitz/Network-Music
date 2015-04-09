@@ -60,7 +60,6 @@
 #define RESUME_LABEL    "Resume playback"
 #define VOLUME_LABEL    "Volume:"
 
-#define TONE_COUNT (5) //base number of threads/tones
 #define TONE_MAX (15) //Maximum number of threads
 #define TONE_MIN (1)
 
@@ -225,21 +224,6 @@ void AudioTest::initializeWindow()
 
 }
 
-//adds a new tone and thread and starts it
-void AudioTest::AddTone(int i){
-
-    qDebug() << "Adding new tone["<<i<<"]";
-    //tone(toneduration(seconds), frequency(hz), parent)
-    Tones.append(  new tone(1, 200+(i*i), NULL)  );
-    audioThreads.append( new QThread );
-
-    //signals needed to talk to tone after moved to another thread
-    connect (this->m_volumeSlider, SIGNAL(valueChanged(int)), Tones[i], SLOT(OnVolumeChanged(int)) );
-    connect(this, SIGNAL(Start_Audio()), Tones[i], SLOT(DoStartPlaying()) );
-
-    Tones[i]->moveToThread(audioThreads[i]);
-    audioThreads[i]->start();
-}
 
 void AudioTest::PcapButtonPressed(){
     qDebug()<< Q_FUNC_INFO;
@@ -283,28 +267,4 @@ void AudioTest::frequencyChanged(int frequency){
 
     frequency *=30;
     SetFrequency(frequency);
-}
-
-void AudioTest::SetFrequency(int frequency){
-
-    if(frequency < 50)
-        frequency = frequency*frequency;
-   // else if(frequency > 1000)
-        //frequency = 1000;
-
-    if( !toneBuffers.contains(frequency) ){
-        qDebug() << Q_FUNC_INFO << "Buffer Frequency miss for :" << frequency << " hz";
-        toneBuffers.insert(frequency, CreateToneBuffer(Tones[currentTone]->GetFormat(), frequency));
-    }
-
-    Tones[currentTone]->m_generator->m_buffer = toneBuffers[frequency];
-    Tones[currentTone]->m_generator->m_pos = 0;
-
-    currentTone++;
-
-    //resetting the tone iterator
-    if(currentTone >= numberOfTones)
-        currentTone = 0;
-
-    //m_statusBarLabelString
 }
