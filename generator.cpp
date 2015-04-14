@@ -41,12 +41,10 @@ void Generator::generateData(const QAudioFormat &format, qint64 durationUs)
                         * durationUs / 100000;
 
     Q_ASSERT(length % sampleBytes == 0);
-    //Q_UNUSED(sampleBytes) // suppress warning in release builds
 
-    //m_buffer.resize(length);
     m_buffer = new QByteArray(length, '0');
 
-    //unsigned char *ptr = reinterpret_cast<unsigned char *>(m_buffer.data());
+
     unsigned char *ptr = reinterpret_cast<unsigned char *>(m_buffer->data());
     int sampleIndex = 0;
 
@@ -81,7 +79,7 @@ void Generator::generateData(const QAudioFormat &format, qint64 durationUs)
     }
 }
 
-QByteArray* Generator::GenerateData(const QAudioFormat &format, qint64 durationUs)
+QByteArray* Generator::GenerateData(const QAudioFormat &format, qint64 frequency)
 {
 
     qint64 durationUs = 1000000;
@@ -133,16 +131,16 @@ QByteArray* Generator::GenerateData(const QAudioFormat &format, qint64 durationU
 
 qint64 Generator::readData(char *data, qint64 len)
 {
-  //  qDebug() << Q_FUNC_INFO;
+
     qint64 total = 0;
-    //if (!m_buffer.isEmpty()) {
+
     if (!m_buffer->isEmpty()) {
         while (len - total > 0) {
-            //const qint64 chunk = qMin((m_buffer.size() - m_pos), len - total);
+
             const qint64 chunk = qMin((m_buffer->size() - m_pos), len - total);
-            //memcpy(data + total, m_buffer.constData() + m_pos, chunk);
+
             memcpy(data + total, m_buffer->constData() + m_pos, chunk);
-            //m_pos = (m_pos + chunk) % m_buffer.size();
+
             m_pos = (m_pos + chunk) % m_buffer->size();
             total += chunk;
         }
@@ -166,6 +164,5 @@ qint64 Generator::writeData(const char *data, qint64 len)
 
 qint64 Generator::bytesAvailable() const
 {
-    //return m_buffer.size() + QIODevice::bytesAvailable();
     return m_buffer->size() + QIODevice::bytesAvailable();
 }

@@ -8,7 +8,8 @@ class QAudioFormat;
 
 class QThread;
 
-#include <QHash>;
+#include <QHash>
+#include <QObject>
 #include <QList>
 
 struct ToneObject{
@@ -17,16 +18,20 @@ struct ToneObject{
 };
 
 /** \abstract Class that acts as the controller to the tones */
-class ToneManager
+class ToneManager : public QObject
 {
+    Q_OBJECT
+
 public:
     ToneManager();
+    ToneManager(int BaseNumberOfTones);
     ~ToneManager();
 
 protected:
     void AddTone(int i);
 
     int numberOfTones;
+    int currentTone;
 
     QHash<int, QByteArray*> toneBuffers;
     QList<ToneObject> Tones;
@@ -35,7 +40,6 @@ public slots:
     void SLOT_NumberOfTonesChanged(int newNumberOfTones);
     void SLOT_VolumeChanged(int newVolume);
     void SLOT_SetFrequency(int frequency);
-
     void SLOT_InitializeTones();
 
 signals:

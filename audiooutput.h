@@ -30,7 +30,7 @@ class AudioTest : public QMainWindow
 
 public:
     AudioTest();
-    //void Setup();
+    void Setup();
     ~AudioTest();
 
 private:
@@ -70,6 +70,7 @@ private slots:
 signals:
    void VolumeChanged(int);
 
+   void SIGNAL_BEGIN_TONES();
    void SIGNAL_BEGIN_CAPTURE();
 };
 

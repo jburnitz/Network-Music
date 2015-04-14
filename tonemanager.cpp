@@ -7,11 +7,17 @@
 
 #define TONE_COUNT (5) //base number of threads/tones
 
-
+//default constructor
 ToneManager::ToneManager()
 {
     numberOfTones = TONE_COUNT;
 
+}
+
+//specify the number of tones
+ToneManager::ToneManager(int BaseNumberOfTones){
+
+    numberOfTones = BaseNumberOfTones;
 }
 
 ToneManager::~ToneManager()
@@ -31,17 +37,13 @@ void ToneManager::SLOT_InitializeTones(){
         //start the tone players
         qDebug() << "Starting players";
         emit(this->Start_Audio());
-        disconnect(this, SIGNAL(Start_Audio()), Tones[i], SLOT(DoStartPlaying()) );
+        disconnect(this, SIGNAL(Start_Audio()), Tones[i].theTone, SLOT(DoStartPlaying()) );
     }
 
     currentTone = 0;
-
-    qDebug() << "Creating new Packetcapture thread";
-    PacketCaptureThread = new QThread();
-    //setup happens later
-
 }
 
+/** \attention modify the frequency for "niceness" */
 void ToneManager::SLOT_SetFrequency(int frequency){
     //this->Tones[0].theThread
     //this->Tones[0].theTone
@@ -57,8 +59,8 @@ void ToneManager::SLOT_SetFrequency(int frequency){
         toneBuffers.insert(frequency, Generator::GenerateData(Tones[currentTone].theTone->format(), frequency ) );
     }
 
-    Tones[currentTone]->m_generator->m_buffer = toneBuffers[frequency];
-    Tones[currentTone]->m_generator->m_pos = 0;
+    Tones[currentTone].theTone->m_generator->m_buffer = toneBuffers[frequency];
+    Tones[currentTone].theTone->m_generator->m_pos = 0;
 
     currentTone++;
 
@@ -71,35 +73,35 @@ void ToneManager::SLOT_SetFrequency(int frequency){
 /** \badcode Very clunky*/
 void ToneManager::SLOT_NumberOfTonesChanged(int newNumberOfTones){
 
-    qDebug() << Q_FUNC_INFO << value << numberOfTones << Tones.size();
+    qDebug() << Q_FUNC_INFO << newNumberOfTones << numberOfTones << Tones.size();
     if(Tones.size() < newNumberOfTones ){ //Tones.size() SHOULD be same as audioThreads.size()
-        for( int i=Tones.size(); i< value; i++){
+        for( int i=Tones.size(); i< newNumberOfTones; i++){
             //Tones[i] doesn't exists and needs to be added
             AddTone(i);
             //emit( this->Start_Audio() );
             qDebug() << "adding new tone";
-            connect(this, SIGNAL(Start_Audio()), Tones[i], SLOT(DoStartPlaying()) );
+            connect(this, SIGNAL(Start_Audio()), Tones[i].theTone, SLOT(DoStartPlaying()) );
             emit( this->Start_Audio() );
-            disconnect(this, SIGNAL(Start_Audio()), Tones[i], SLOT(DoStartPlaying()) );
+            disconnect(this, SIGNAL(Start_Audio()), Tones[i].theTone, SLOT(DoStartPlaying()) );
         }
-    }else if( newNumberOfTones > numberOfTones && value < Tones.size() ){ //tone already exists and needs resuming
-        for( int i=numberOfTones; i< value; i++){
+    }else if( newNumberOfTones > numberOfTones && newNumberOfTones < Tones.size() ){ //tone already exists and needs resuming
+        for( int i=numberOfTones; i< newNumberOfTones; i++){
 
             qDebug() << "resuming previously made toneplayer";
             //connect, send signal, disconnect
-            connect(this, SIGNAL(Resume_Audio()), Tones[i], SLOT(DoResumeAudio()) );
+            connect(this, SIGNAL(Resume_Audio()), Tones[i].theTone, SLOT(DoResumeAudio()) );
             emit( this->Resume_Audio() );
-            disconnect(this, SIGNAL(Resume_Audio()), Tones[i], SLOT(DoResumeAudio()) );
+            disconnect(this, SIGNAL(Resume_Audio()), Tones[i].theTone, SLOT(DoResumeAudio()) );
 
         }
     }else if(Tones.size() > newNumberOfTones ){
-        for(int i= value; i<Tones.size(); i++){
+        for(int i=newNumberOfTones; i<Tones.size(); i++){
 
             qDebug() << "pausing the tone["<<i<<"]";
             //turn these end tones off
-            connect(this, SIGNAL(Pause_Audio()), Tones[i], SLOT(DoPauseAudio()) );
+            connect(this, SIGNAL(Pause_Audio()), Tones[i].theTone, SLOT(DoPauseAudio()) );
             emit( this->Pause_Audio() );
-            disconnect(this, SIGNAL(Pause_Audio()), Tones[i], SLOT(DoPauseAudio()) );
+            disconnect(this, SIGNAL(Pause_Audio()), Tones[i].theTone, SLOT(DoPauseAudio()) );
         }
     }else{
         //do nothing if its the same size
@@ -111,18 +113,21 @@ void ToneManager::SLOT_NumberOfTonesChanged(int newNumberOfTones){
 }
 
 //adds a new tone and thread and starts it
-void AudioTest::AddTone(int i){
+void ToneManager::AddTone(int i){
 
     qDebug() << "Adding new tone["<<i<<"]";
-    //tone(toneduration(seconds), frequency(hz), parent)
-    Tones.append(  new tone(1, 200+(i*i), NULL)  );
-    audioThreads.append( new QThread );
+
+    ToneObject newTone;
+    newTone.theTone = new tone(1, 200+(i*i), NULL );
+    newTone.theThread = new QThread;
+    Tones.append( newTone );
 
     //signals needed to talk to tone after moved to another thread
-    connect (this->m_volumeSlider, SIGNAL(valueChanged(int)), Tones[i], SLOT(OnVolumeChanged(int)) );
-    connect(this, SIGNAL(Start_Audio()), Tones[i], SLOT(DoStartPlaying()) );
+    connect ( parent, SIGNAL(valueChanged(int)), Tones[i].theTone, SLOT(OnVolumeChanged(int)) );
+    connect(this, SIGNAL(Start_Audio()), Tones[i].theTone, SLOT(DoStartPlaying()) );
 
-    Tones[i]->moveToThread(audioThreads[i]);
-    audioThreads[i]->start();
+    Tones[i].theTone->moveToThread(Tones[i].theThread);
+    //Tones[i].theThread
+
 }
 
