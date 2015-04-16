@@ -1,16 +1,16 @@
 #ifndef TONEMANAGER_H
 #define TONEMANAGER_H
 
+#include <QObject>
+
+#include <QHash>
+#include <QList>
+
 class tone;
 
 class QByteArray;
 class QAudioFormat;
-
 class QThread;
-
-#include <QHash>
-#include <QObject>
-#include <QList>
 
 struct ToneObject{
     tone* theTone;
@@ -28,13 +28,13 @@ public:
     ~ToneManager();
 
 protected:
-    void AddTone(int i);
+    ToneObject *AddTone(int i);
 
     int numberOfTones;
     int currentTone;
 
     QHash<int, QByteArray*> toneBuffers;
-    QList<ToneObject> Tones;
+    QList<ToneObject*> Tones;
 
 public slots:
     void SLOT_NumberOfTonesChanged(int newNumberOfTones);

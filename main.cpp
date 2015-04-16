@@ -46,6 +46,7 @@
 
 int main(int argc, char *argv[])
 {
+    qDebug() << Q_FUNC_INFO  << " begin";
     QApplication app(argc, argv);
     app.setApplicationName("bleepin computer");
 
@@ -57,10 +58,11 @@ int main(int argc, char *argv[])
     //this renders the splash screen and ui
     app.processEvents();
 
-    qDebug() << Q_FUNC_INFO << "Showing UI";
+    qDebug() << "   Showing UI";
     audio.show();
-    qDebug() << Q_FUNC_INFO << "setting up additional parameters";
+    qDebug() << "   Setting up additional parameters";
     audio.Setup();
+    qDebug() << "   app setup complete";
 
     return app.exec();
 }

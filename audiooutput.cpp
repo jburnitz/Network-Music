@@ -79,20 +79,29 @@ AudioTest::AudioTest()
 
 //setup the non graphical elements
 void AudioTest::Setup(){
+    qDebug() << Q_FUNC_INFO << " begin";
 
+    qDebug() << Q_FUNC_INFO << "   creating ToneManager";
     toneManager = new ToneManager(TONE_COUNT);
+    ToneManagerThread = new QThread;
 
+    qDebug() << Q_FUNC_INFO << "   connecting slots";
     connect( this, SIGNAL(SIGNAL_BEGIN_TONES()), this->toneManager, SLOT(SLOT_InitializeTones()) );
     connect( this->m_volumeSlider, SIGNAL(valueChanged(int)), this->toneManager, SLOT(SLOT_VolumeChanged(int)) );
     connect( this->m_numberOfTones, SIGNAL(valueChanged(int)), this->toneManager, SLOT(SLOT_NumberOfTonesChanged(int)) );
 
-    //connect(m_numberOfTones, SIGNAL(valueChanged(int)), this, SLOT(DoNumberOfTonesChanged(int)) );
     //connect(m_frequencySlider, SIGNAL(valueChanged(int)), this, SLOT(frequencyChanged(int)));
 
+    qDebug() << Q_FUNC_INFO << "   moving ToneManager to own thread";
     toneManager->moveToThread(ToneManagerThread);
+
+    qDebug() << Q_FUNC_INFO << "   Starting ToneManager thread";
     ToneManagerThread->start();
 
+    qDebug() << Q_FUNC_INFO << "   Sending begin signal";
     emit( SIGNAL_BEGIN_TONES() );
+
+    qDebug() << Q_FUNC_INFO << " done";
 
 }
 

@@ -33,12 +33,15 @@ void tone::DoStartPlaying(){
 
     //delete m_audioOutput;
 
+    qDebug() << Q_FUNC_INFO << "    begin";
     //m_audioOutput = 0;
     m_audioOutput = new QAudioOutput(m_device, m_format, this);
     m_audioOutput->setVolume(qreal(15/100.0f));
     m_generator->start();
 
     m_audioOutput->start(m_generator);
+
+    qDebug() << Q_FUNC_INFO << "    end";
 }
 
 void tone::DoResumeAudio(){
