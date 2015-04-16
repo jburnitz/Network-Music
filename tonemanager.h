@@ -5,6 +5,7 @@
 
 #include <QHash>
 #include <QList>
+#include <QAudioFormat>
 
 class tone;
 
@@ -32,6 +33,7 @@ protected:
 
     int numberOfTones;
     int currentTone;
+    QAudioFormat m_format;
 
     QHash<int, QByteArray*> toneBuffers;
     QList<ToneObject*> Tones;

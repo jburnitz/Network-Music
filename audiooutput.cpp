@@ -227,8 +227,9 @@ void AudioTest::PcapButtonPressed(){
     qDebug() << "   Moving pk to packetCaptureThread";
     pk->moveToThread(PacketCaptureThread);
 
+    qDebug() << "   Connecting slots";
     connect(this, SIGNAL(SIGNAL_BEGIN_CAPTURE()), pk, SLOT(SLOT_CAPTURE()) );
-    connect(pk, SIGNAL(SIG_NEW_TONE(int)), this, SLOT(SetFrequency(int)) );
+    connect(pk, SIGNAL(SIG_NEW_TONE(int)), toneManager, SLOT(SLOT_SetFrequency(int)) );
 
     qDebug() << "   Starting pkThread";
     PacketCaptureThread->start();

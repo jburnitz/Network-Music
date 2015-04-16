@@ -19,6 +19,19 @@ ToneManager::ToneManager()
 ToneManager::ToneManager(int BaseNumberOfTones){
 
     numberOfTones = BaseNumberOfTones;
+
+    m_format.setSampleRate(44100);
+    m_format.setChannelCount(2);
+    m_format.setSampleSize(16);
+    m_format.setCodec("audio/pcm");
+    m_format.setByteOrder(QAudioFormat::LittleEndian);
+    m_format.setSampleType(QAudioFormat::SignedInt);
+
+    QAudioDeviceInfo info(QAudioDeviceInfo::defaultOutputDevice());
+    if (!info.isFormatSupported(m_format)) {
+        qWarning() << "Default format not supported - trying to use nearest";
+        m_format = info.nearestFormat(m_format);
+    }
 }
 
 ToneManager::~ToneManager()
@@ -30,11 +43,16 @@ ToneManager::~ToneManager()
 void ToneManager::SLOT_InitializeTones(){
 
     qDebug() << Q_FUNC_INFO << "    begin";
+
     //Set up the audio devices
     qDebug() << "    Setting up audio devices";
 
     for(int i=0; i<numberOfTones; i++){
         ToneObject* to = AddTone(i);
+
+        //signals needed to talk to tone after moved to another thread
+        connect( this, SIGNAL( Set_Volume(int)), to->theTone, SLOT(OnVolumeChanged(int)) );
+        connect( this, SIGNAL( Start_Audio()), to->theTone, SLOT(DoStartPlaying()) );
 
         //start the tone players
         qDebug() << Q_FUNC_INFO << "   Starting players";
@@ -57,10 +75,12 @@ void ToneManager::SLOT_SetFrequency(int frequency){
 
     //time consuming operation
     if( !toneBuffers.contains(frequency) ){
-        qDebug() << Q_FUNC_INFO << "Buffer Frequency miss for :" << frequency << " hz";
-        toneBuffers.insert(frequency, Generator::GenerateData(Tones[currentTone]->theTone->format(), frequency ) );
+        qDebug() << Q_FUNC_INFO << "BufferCache Frequency miss for :" << frequency << " hz";
+        //toneBuffers.insert(frequency, Generator::GenerateData( Tones[0]->theTone->format(), frequency ) );
+        toneBuffers.insert(frequency, Generator::GenerateData( m_format, frequency ) );
     }
 
+    qDebug() << Q_FUNC_INFO << "    Setting frequency:"<< frequency;
     Tones[currentTone]->theTone->m_generator->m_buffer = toneBuffers[frequency];
     Tones[currentTone]->theTone->m_generator->m_pos = 0;
 
@@ -74,26 +94,26 @@ void ToneManager::SLOT_SetFrequency(int frequency){
 
 //forwards the signal to children
 void ToneManager::SLOT_VolumeChanged(int newVolume){
-    qDebug() << Q_FUNC_INFO << "    begin";
+    //qDebug() << Q_FUNC_INFO << "    begin";
 
     emit( Set_Volume(newVolume) );
 
-    qDebug() << Q_FUNC_INFO << "    end";
+    //qDebug() << Q_FUNC_INFO << "    end";
 }
 
 /** \badcode Very clunky*/
 void ToneManager::SLOT_NumberOfTonesChanged(int newNumberOfTones){
 
     qDebug() << Q_FUNC_INFO << newNumberOfTones << numberOfTones << Tones.size();
-    if(Tones.size() < newNumberOfTones ){ //Tones.size() SHOULD be same as audioThreads.size()
+    if(Tones.size() < newNumberOfTones ){ //if the counter has increased
         for( int i=Tones.size(); i< newNumberOfTones; i++){
             //Tones[i] doesn't exists and needs to be added
-            AddTone(i);
+            ToneObject* to = AddTone(i);
             //emit( this->Start_Audio() );
             qDebug() << "adding new tone";
-            connect(this, SIGNAL(Start_Audio()), Tones[i]->theTone, SLOT(DoStartPlaying()) );
-            emit( this->Start_Audio() );
-            disconnect(this, SIGNAL(Start_Audio()), Tones[i]->theTone, SLOT(DoStartPlaying()) );
+            connect(this, SIGNAL(Start_Audio()), to->theTone, SLOT(DoStartPlaying()) );
+            emit( Start_Audio() );
+            disconnect(this, SIGNAL(Start_Audio()), to->theTone, SLOT(DoStartPlaying()) );
         }
     }else if( newNumberOfTones > numberOfTones && newNumberOfTones < Tones.size() ){ //tone already exists and needs resuming
         for( int i=numberOfTones; i< newNumberOfTones; i++){
@@ -105,11 +125,11 @@ void ToneManager::SLOT_NumberOfTonesChanged(int newNumberOfTones){
             disconnect(this, SIGNAL(Resume_Audio()), Tones[i]->theTone, SLOT(DoResumeAudio()) );
 
         }
-    }else if(Tones.size() > newNumberOfTones ){
+    }else if(Tones.size() > newNumberOfTones ){//turn these end tones off
         for(int i=newNumberOfTones; i<Tones.size(); i++){
 
             qDebug() << "pausing the tone["<<i<<"]";
-            //turn these end tones off
+
             connect(this, SIGNAL(Pause_Audio()), Tones[i]->theTone, SLOT(DoPauseAudio()) );
             emit( this->Pause_Audio() );
             disconnect(this, SIGNAL(Pause_Audio()), Tones[i]->theTone, SLOT(DoPauseAudio()) );
@@ -131,19 +151,17 @@ ToneObject* ToneManager::AddTone(int i){
     qDebug() << Q_FUNC_INFO << "    Adding new tone["<<i<<"]";
 
     ToneObject *newTone = new ToneObject;
-    newTone->theTone = new tone(1, 100*i+100, NULL );
-    newTone->theThread = new QThread;
+    if( i%2)
+        newTone->theTone = new tone(1, 100*i+400, NULL );
+    else
+        newTone->theTone = new tone(1, (100*i)+i + 300, NULL );
 
-    //signals needed to talk to tone after moved to another thread
-    connect( this, SIGNAL( Set_Volume(int)), newTone->theTone, SLOT(OnVolumeChanged(int)) );
-    connect( this, SIGNAL( Start_Audio()), newTone->theTone, SLOT(DoStartPlaying()) );
+    newTone->theThread = new QThread;
 
     newTone->theTone->moveToThread( newTone->theThread );
     newTone->theThread->start();
 
-    Tones.append( newTone );
-
-    emit( Start_Audio() );
+    Tones.prepend( newTone );
 
     qDebug() << Q_FUNC_INFO << "    end";
     return newTone;

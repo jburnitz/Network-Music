@@ -34,6 +34,7 @@ void Generator::setFrequency(int value){
 /** Generates a buffer of pure tones */
 void Generator::generateData(const QAudioFormat &format, qint64 durationUs)
 {
+
     const int channelBytes = format.sampleSize() / 8;
     const int sampleBytes = format.channelCount() * channelBytes;
 
@@ -82,12 +83,16 @@ void Generator::generateData(const QAudioFormat &format, qint64 durationUs)
 QByteArray* Generator::GenerateData(const QAudioFormat &format, qint64 frequency)
 {
 
+    //qDebug() << Q_FUNC_INFO << "    begin";
+
+    //qDebug() << Q_FUNC_INFO << "    format="<< format.codec();
     qint64 durationUs = 1000000;
     const int channelBytes = format.sampleSize() / 8;
     const int sampleBytes = format.channelCount() * channelBytes;
 
     qint64 length = (format.sampleRate() * format.channelCount() * (format.sampleSize() / 8)) * durationUs / 100000;
 
+    //qDebug() << Q_FUNC_INFO << "    length="<< length << "samplebytes= "<< sampleBytes;
     Q_ASSERT(length % sampleBytes == 0);
 
     QByteArray* m_buffer = new QByteArray(length, '0');
@@ -126,6 +131,7 @@ QByteArray* Generator::GenerateData(const QAudioFormat &format, qint64 frequency
         ++sampleIndex;
     }
 
+    //qDebug() << Q_FUNC_INFO << "    end";
     return m_buffer;
 }
 

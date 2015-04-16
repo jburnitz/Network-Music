@@ -28,6 +28,7 @@ tone::tone(int volumePercent, int frequency, QObject* parent)
     //creating this own generator may be going away with a generator reference from parent
     m_generator = new Generator(m_format, DurationSeconds*1000000, frequency, this);
 
+    qDebug() << Q_FUNC_INFO << "    new tone created at frequency:" << frequency;
 }
 void tone::DoStartPlaying(){
 
