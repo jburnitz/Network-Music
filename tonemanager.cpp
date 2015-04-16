@@ -4,6 +4,7 @@
 #include "tone.h"
 
 #include <QDebug>
+#include <QThread>
 
 #define TONE_COUNT (5) //base number of threads/tones
 
@@ -70,6 +71,11 @@ void ToneManager::SLOT_SetFrequency(int frequency){
 
 }
 
+//forwards the signal to children
+void ToneManager::SLOT_VolumeChanged(int newVolume){
+    emit(Set_Volume(newVolume));
+}
+
 /** \badcode Very clunky*/
 void ToneManager::SLOT_NumberOfTonesChanged(int newNumberOfTones){
 
@@ -123,7 +129,7 @@ void ToneManager::AddTone(int i){
     Tones.append( newTone );
 
     //signals needed to talk to tone after moved to another thread
-    connect ( parent, SIGNAL(valueChanged(int)), Tones[i].theTone, SLOT(OnVolumeChanged(int)) );
+    connect ( this, SIGNAL(Set_Volume(int)), Tones[i].theTone, SLOT(OnVolumeChanged(int)) );
     connect(this, SIGNAL(Start_Audio()), Tones[i].theTone, SLOT(DoStartPlaying()) );
 
     Tones[i].theTone->moveToThread(Tones[i].theThread);

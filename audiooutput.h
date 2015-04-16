@@ -64,7 +64,6 @@ private:
 
 
 private slots:
-    void deviceChanged(int index);
     void PcapButtonPressed();
 
 signals:

@@ -86,6 +86,9 @@ void AudioTest::Setup(){
     connect( this->m_volumeSlider, SIGNAL(valueChanged(int)), this->toneManager, SLOT(SLOT_VolumeChanged(int)) );
     connect( this->m_numberOfTones, SIGNAL(valueChanged(int)), this->toneManager, SLOT(SLOT_NumberOfTonesChanged(int)) );
 
+    //connect(m_numberOfTones, SIGNAL(valueChanged(int)), this, SLOT(DoNumberOfTonesChanged(int)) );
+    //connect(m_frequencySlider, SIGNAL(valueChanged(int)), this, SLOT(frequencyChanged(int)));
+
     toneManager->moveToThread(ToneManagerThread);
     ToneManagerThread->start();
 
@@ -147,7 +150,6 @@ void AudioTest::initializeWindow()
     toneChooserLayoutBox->addWidget(m_numberOfTones);
 
     layout->addLayout(toneChooserLayoutBox);
-    connect(m_numberOfTones, SIGNAL(valueChanged(int)), this, SLOT(DoNumberOfTonesChanged(int)) );
     qDebug() << "    tone number chooser created";
 
     qDebug() << "   Creating volumeSlider";
@@ -166,8 +168,6 @@ void AudioTest::initializeWindow()
     m_frequencySlider->setMaximum(300);
     m_frequencySlider->setSingleStep(1);
     m_frequencySlider->setSliderPosition(4);
-
-    connect(m_frequencySlider, SIGNAL(valueChanged(int)), this, SLOT(frequencyChanged(int)));
     qDebug() << "   Frequency slider added";
 
     qDebug() << "   adding sliders to slider layout";

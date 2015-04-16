@@ -43,6 +43,7 @@ public slots:
     void SLOT_InitializeTones();
 
 signals:
+    void Set_Volume(int);
     void Resume_Audio();
     void Pause_Audio();
     void Start_Audio();
