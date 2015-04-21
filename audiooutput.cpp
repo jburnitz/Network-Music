@@ -62,7 +62,7 @@
 #define VOLUME_LABEL    "Volume:"
 
 #define TONE_MAX (15) //Maximum number of threads
-#define TONE_MIN (1)
+#define TONE_MIN (3)
 #define TONE_COUNT (5) //default tone count
 
 /** \abstract Controller class that manages the tone players and receives input from pcap */
@@ -229,7 +229,7 @@ void AudioTest::PcapButtonPressed(){
 
     qDebug() << "   Connecting slots";
     connect(this, SIGNAL(SIGNAL_BEGIN_CAPTURE()), pk, SLOT(SLOT_CAPTURE()) );
-    connect(pk, SIGNAL(SIG_NEW_TONE(int)), toneManager, SLOT(SLOT_SetFrequency(int)) );
+    connect(pk, SIGNAL(SIG_NEW_TONE(int, int)), toneManager, SLOT(SLOT_SetFrequency(int, int)) );
 
     qDebug() << "   Starting pkThread";
     PacketCaptureThread->start();

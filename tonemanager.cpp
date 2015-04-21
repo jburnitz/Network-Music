@@ -8,17 +8,12 @@
 
 #define TONE_COUNT (5) //base number of threads/tones
 
-//default constructor
-ToneManager::ToneManager()
-{
-    numberOfTones = TONE_COUNT;
-
-}
-
-//specify the number of tones
-ToneManager::ToneManager(int BaseNumberOfTones){
+//constructor
+ToneManager::ToneManager(int BaseNumberOfTones=TONE_COUNT){
 
     numberOfTones = BaseNumberOfTones;
+    currentUncommonTone = 0;
+    qsrand(time(NULL));
 
     m_format.setSampleRate(44100);
     m_format.setChannelCount(2);
@@ -64,32 +59,43 @@ void ToneManager::SLOT_InitializeTones(){
 }
 
 /** \attention modify the frequency for "niceness" */
-void ToneManager::SLOT_SetFrequency(int frequency){
-    //this->Tones[0].theThread
-    //this->Tones[0].theTone
+void ToneManager::SLOT_SetFrequency(int frequency, int often){
+
+
+    int toneToModify;
 
     if(frequency < 50)
-        frequency = frequency*frequency;
-   // else if(frequency > 1000)
-        //frequency = 1000;
+        frequency = frequency+(qrand()%80);
+
+    else if(frequency > 2000)
+        frequency = 2000-(qrand()%1500);
 
     //time consuming operation
     if( !toneBuffers.contains(frequency) ){
-        qDebug() << Q_FUNC_INFO << "BufferCache Frequency miss for :" << frequency << " hz";
+        qDebug() << Q_FUNC_INFO << "    BufferCache Frequency miss for :" << frequency;
         //toneBuffers.insert(frequency, Generator::GenerateData( Tones[0]->theTone->format(), frequency ) );
         toneBuffers.insert(frequency, Generator::GenerateData( m_format, frequency ) );
     }
 
-    qDebug() << Q_FUNC_INFO << "    Setting frequency:"<< frequency;
-    Tones[currentTone]->theTone->m_generator->m_buffer = toneBuffers[frequency];
-    Tones[currentTone]->theTone->m_generator->m_pos = 0;
+    //this is normal changing tone
+    if(often){
+        toneToModify = currentTone;
+        currentTone++;
 
-    currentTone++;
+        //resetting the tone iterator
+        if(currentTone >= numberOfTones){ currentTone = 2; }
 
-    //resetting the tone iterator
-    if(currentTone >= numberOfTones)
-        currentTone = 0;
+    }else{//the not often case, we'll modify just the lowest tones
+        toneToModify = currentUncommonTone;
+        currentUncommonTone++;
 
+        //resetting the tone iterator
+        if(currentUncommonTone >= 2){ currentUncommonTone = 0; }
+    }
+
+    qDebug() << Q_FUNC_INFO << "    Setting frequency:"<< frequency << "on Tones["<<toneToModify<<"]";
+    Tones[toneToModify]->theTone->m_generator->m_buffer = toneBuffers[frequency];
+    Tones[toneToModify]->theTone->m_generator->m_pos = 0;
 }
 
 //forwards the signal to children

@@ -17,7 +17,7 @@ class PacketCapturer : public QObject
 public:
     explicit PacketCapturer(QObject *parent = 0);
     PacketCapturer(const char* deviceName);
-    void ChangeEmitter(int value);
+    void ChangeEmitter(int value, int often);
     ~PacketCapturer();
 
 private:
@@ -36,7 +36,7 @@ private:
 #define SIZE_ETHERNET 14
 
 signals:
-    void SIG_NEW_TONE(int);
+    void SIG_NEW_TONE(int, int);
 
 public slots:
     void SLOT_CAPTURE();

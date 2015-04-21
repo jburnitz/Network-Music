@@ -33,6 +33,7 @@ protected:
 
     int numberOfTones;
     int currentTone;
+    int currentUncommonTone;
     QAudioFormat m_format;
 
     QHash<int, QByteArray*> toneBuffers;
@@ -41,7 +42,7 @@ protected:
 public slots:
     void SLOT_NumberOfTonesChanged(int newNumberOfTones);
     void SLOT_VolumeChanged(int newVolume);
-    void SLOT_SetFrequency(int frequency);
+    void SLOT_SetFrequency(int frequency, int often);
     void SLOT_InitializeTones();
 
 signals:

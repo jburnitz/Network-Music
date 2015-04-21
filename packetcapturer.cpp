@@ -6,6 +6,8 @@
 
 #include <QApplication>
 
+#define ETHERTYPE_EAP (0x888e) /* eap authentication */
+
 namespace packetprocess {
 
 u_short recentFreq = 100;
@@ -67,6 +69,9 @@ struct sniff_tcp {
 //static callback for libpcap
 void Callback_ProcessPacket(u_char *useless, const pcap_pkthdr *pkthdr, const u_char *packet){
 
+    //just a pointer to avoid the extra casts later
+    PacketCapturer* p = ((PacketCapturer*)parent);
+
     const struct sniff_ethernet *ethernet; /* The ethernet header */
     const struct sniff_ip *ip; /* The IP header */
     const struct sniff_tcp *tcp; /* The TCP header */
@@ -78,14 +83,29 @@ void Callback_ProcessPacket(u_char *useless, const pcap_pkthdr *pkthdr, const u_
     //the beginning is ethernet header
     ethernet = (struct sniff_ethernet*)(packet);
 
-    if(ntohs(ethernet->ether_type) != ETHERTYPE_IP )
+    //QString("%1").arg(yourNumber, 5, 10, QChar('0'));
+    qDebug() << "ethernet type:" << QString("%1").arg(ntohs(ethernet->ether_type), 4, 16).prepend("0x") << ntohs(ethernet->ether_type);
+
+    if(ntohs(ethernet->ether_type) == ETHERTYPE_EAP){
+
+        p->ChangeEmitter( 1200, 0);
+        p->ChangeEmitter( 1215, 0);
+
+        return;
+    }
+
+    if(ntohs(ethernet->ether_type) != ETHERTYPE_IP)
         return;
 
-    //continuing up the stack
+    //continuing UP the stack
     ip = (struct sniff_ip*)(packet + SIZE_ETHERNET);
 
-    if(ip->ip_p != TYPE_TCP )
+    if(ip->ip_p != TYPE_TCP ){
+
+        p->ChangeEmitter( 1500-ntohs(ip->ip_tos), 0);
+
         return;
+    }
 
     size_ip = IP_HL(ip)*4;
     if (size_ip < 20) {
@@ -110,10 +130,15 @@ void Callback_ProcessPacket(u_char *useless, const pcap_pkthdr *pkthdr, const u_
         ((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_sport) );
         */
 
+    /*
     ((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_dport)&511 );
     ((PacketCapturer*)parent)->ChangeEmitter( (ntohs(tcp->th_dport)&511) +5);
+    */
     //((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_sport)&8191 );
     //((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_dport)&1023|ntohs(tcp->th_sport) );
+
+
+    p->ChangeEmitter(ntohs(tcp->th_dport)&1023|ntohs(tcp->th_sport), 1);
 
     //u_short addr = ntohl((ip->ip_dst.s_addr)&0xFFF);
 
@@ -172,9 +197,9 @@ PacketCapturer::PacketCapturer(const char *deviceName){
 }
 
 
-
-void PacketCapturer::ChangeEmitter(int value){
-    emit( SIG_NEW_TONE(value) );
+//an object callback to send signals from the Static ProcessPacket function
+void PacketCapturer::ChangeEmitter(int value, int often){
+    emit( SIG_NEW_TONE(value, often) );
 }
 
 //a slot is needed for multi thread interfacing
