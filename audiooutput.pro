@@ -1,7 +1,7 @@
 TEMPLATE = app
 TARGET = audiooutput
 
-QT += multimedia widgets
+QT += multimedia widgets charts
 
 LIBS += -lpcap
 
@@ -20,3 +20,5 @@ SOURCES       = audiooutput.cpp \
 
 target.path = $$[QT_INSTALL_EXAMPLES]/multimedia/audiooutput
 INSTALLS += target
+
+SUBDIRS += \

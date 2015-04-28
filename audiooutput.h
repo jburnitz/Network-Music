@@ -24,6 +24,11 @@ class tone;
 class Generator;
 class ToneManager;
 
+#include <QtCharts/QChartView>
+#include <QtCharts/QPieSeries>
+#include <QtCharts/QPieSlice>
+#include <QtCharts>
+
 class AudioTest : public QMainWindow
 {
     Q_OBJECT
@@ -33,7 +38,7 @@ public:
     void Setup();
     ~AudioTest();
 
-private:
+protected:
     void initializeWindow();
     void initializeAudio();
     void createAudioOutput();
@@ -49,6 +54,12 @@ private:
     QStatusBar *m_statusBar;
     QLabel *m_statusBarLabel;
 
+    QPieSeries *series;
+    QChart *chart;
+    QChartView *chartView;
+
+    QHash<int, QPieSlice*> slices;
+
     //useless?
     QString *m_statusBarLabelString;
 
@@ -62,9 +73,13 @@ private:
 
     int currentTone;
 
+private:
+    void SetupGraph();
+
 
 private slots:
     void PcapButtonPressed();
+    void UpdateChart(int freq, int priority);
 
 signals:
    void VolumeChanged(int);

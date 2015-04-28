@@ -81,6 +81,8 @@ AudioTest::AudioTest()
 void AudioTest::Setup(){
     qDebug() << Q_FUNC_INFO << " begin";
 
+
+
     qDebug() << Q_FUNC_INFO << "   creating ToneManager";
     toneManager = new ToneManager(TONE_COUNT);
     ToneManagerThread = new QThread;
@@ -196,6 +198,11 @@ void AudioTest::initializeWindow()
     m_statusBarLabel = new QLabel( *m_statusBarLabelString);
     m_statusBar->addPermanentWidget(m_statusBarLabel, 1);
 
+    //setting up the graph pointers
+    SetupGraph();
+
+    layout->addWidget(chartView);
+
     layout->addWidget(m_statusBar);
 
     window->setLayout(layout.data());
@@ -211,6 +218,38 @@ void AudioTest::initializeWindow()
     qDebug()<< Q_FUNC_INFO << " end";
 }
 
+void AudioTest::SetupGraph(){
+
+        series = new QPieSeries();
+        /*
+        series->append("Jane", 1);
+        series->append("Joe", 1);
+        series->append("Andy", 1);
+        series->append("Barbara", 1);
+        series->append("Axel", 1);
+        */
+        /*
+        foreach (slice, series->slices() ){
+            slice->setLabelVisible();
+        }
+        */
+            //slice->setExploded();
+
+        //slice->setPen(QPen(Qt::darkGreen, 2));
+        //slice->setBrush(Qt::green);
+
+        series->append("Silence", 1);
+        series->slices().at(0)->setLabelVisible();
+
+        chart = new QChart();
+        chart->addSeries(series);
+        chart->setTitle("DataTypes");
+        chart->legend()->hide();
+
+        chartView = new QChartView(chart);
+        chartView->setRenderHint(QPainter::Antialiasing);
+
+}
 
 /** \brief Creating a new packetcapturer instance and moves it to it's own thread */
 void AudioTest::PcapButtonPressed(){
@@ -230,6 +269,7 @@ void AudioTest::PcapButtonPressed(){
     qDebug() << "   Connecting slots";
     connect(this, SIGNAL(SIGNAL_BEGIN_CAPTURE()), pk, SLOT(SLOT_CAPTURE()) );
     connect(pk, SIGNAL(SIG_NEW_TONE(int, int)), toneManager, SLOT(SLOT_SetFrequency(int, int)) );
+    connect(pk, SIGNAL(SIG_NEW_TONE(int, int)), this, SLOT(UpdateChart(int,int)) );
 
     qDebug() << "   Starting pkThread";
     PacketCaptureThread->start();
@@ -239,6 +279,20 @@ void AudioTest::PcapButtonPressed(){
     emit( SIGNAL_BEGIN_CAPTURE() );
 
     qDebug()<< Q_FUNC_INFO << " end";
+}
+
+void AudioTest::UpdateChart(int freq, int priority){
+
+    if( !slices.contains(freq) ){
+        QPieSlice* slice = series->append(QString::number(freq),1);
+        slice->setLabelVisible(true);
+
+        slices.insert( freq, slice );
+    }else{
+        qreal val = slices[freq]->value();
+        slices[freq]->setValue(++val);
+    }
+
 }
 
 
