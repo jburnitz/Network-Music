@@ -314,5 +314,5 @@ void AudioTest::UpdateChart(int freq, int priority){
     }
 
 
-    //audioGraph->AddData(freq);
+    audioGraph->AddData(freq);
 }

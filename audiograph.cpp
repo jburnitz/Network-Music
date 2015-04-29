@@ -2,7 +2,7 @@
 
 using namespace QtDataVisualization;
 
-#define RANDOM_SCATTER // Uncomment this to switch to random scatter
+#define TIMER_TICK (1000)
 
 const int numberOfItems = 3600;
 const float curveDivider = 3.0f;
@@ -13,6 +13,13 @@ AudioGraph::AudioGraph(Q3DScatter *scatter)
     : time(0.0f)
 {
 
+
+    timer = new QTimer();
+
+    //using a coarse timer to save some cycles
+    timer->setTimerType(Qt::CoarseTimer);
+
+    connect( timer, SIGNAL(timeout()), this, SLOT(SLOT_TimerTick()), Qt::QueuedConnection );
 
     m_graph = new Q3DScatter();
     container = QWidget::createWindowContainer(m_graph);
@@ -40,17 +47,37 @@ AudioGraph::AudioGraph(Q3DScatter *scatter)
     QScatterDataProxy *proxy = new QScatterDataProxy;
     QScatter3DSeries *series = new QScatter3DSeries(proxy);
     series->setItemLabelFormat(QStringLiteral("@xTitle: @xLabel @yTitle: @yLabel @zTitle: @zLabel"));
-    series->setMeshSmooth(true);
+    //series->setMeshSmooth(true);
+    series->setMesh(QAbstract3DSeries::MeshSphere);
+    //series->setItemSize();
     m_graph->addSeries(series);
 
     m_graph->axisX()->setAutoAdjustRange(true);
-    m_graph->axisY()->setAutoAdjustRange(true);
-    m_graph->axisZ()->setAutoAdjustRange(true);
+    m_graph->axisX()->setTitle("Time");
+    m_graph->axisX()->setMin(0);
 
+
+    //m_graph->axisY()->setAutoAdjustRange(true);
+    m_graph->axisY()->setMin(0);
+    m_graph->axisY()->setMax(500);
+    m_graph->axisZ()->setAutoAdjustRange(true);
+    //m_graph->axisZ()->setLabels(QStringList("Frequency"));
+    //m_graph->axisZ()->setMin(0);
+
+    timer->start(TIMER_TICK);
 }
 
 //taking some fresh data and adding it to the graph
 void AudioGraph::AddData(int value){
-    m_graph->seriesList().at(0)->dataProxy()->addItem(QScatterDataItem(QVector3D(0,time,time++)));
+    m_graph->seriesList().at(0)->dataProxy()->addItem(QScatterDataItem(QVector3D(time,value,0)));
+
+    //adjusting the graph to show all
+    if(value > m_graph->axisY()->max() )
+        m_graph->axisY()->setMax(value);
+}
+
+void AudioGraph::SLOT_TimerTick(){
+    time++;
+    m_graph->axisX()->setMax(time);
 }
 

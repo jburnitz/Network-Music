@@ -2,6 +2,7 @@
 #define AUDIOGRAPH_H
 
 #include <QtDataVisualization/q3dscatter.h>
+
 #include <QtDataVisualization/qabstract3dseries.h>
 #include <QtGui/QFont>
 
@@ -16,6 +17,7 @@
 #include <QtWidgets/QLabel>
 #include <QtGui/QScreen>
 #include <QtGui/QFontDatabase>
+#include <QTimer>
 
 using namespace QtDataVisualization;
 
@@ -32,6 +34,10 @@ public:
 
 protected:
     float time;
+    QTimer *timer;
+
+private slots:
+    void SLOT_TimerTick();
 
 };
 

@@ -125,7 +125,10 @@ void Callback_ProcessPacket(u_char *useless, const pcap_pkthdr *pkthdr, const u_
 
     //p->ChangeEmitter( ntohs(tcp->th_dport)&1023|ntohs(tcp->th_sport), 1);
     //p->ChangeEmitter( ntohs(tcp->th_dport), 1);
-    p->ChangeEmitter( ntohs(tcp->th_sport), 1);
+    int val = ntohs(tcp->th_sport);
+    if(val > 4096 )
+        val>>3;
+    p->ChangeEmitter( val, 1);
 
 }
 
