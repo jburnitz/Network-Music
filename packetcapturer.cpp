@@ -102,7 +102,8 @@ void Callback_ProcessPacket(u_char *useless, const pcap_pkthdr *pkthdr, const u_
 
     if(ip->ip_p != TYPE_TCP ){
 
-        p->ChangeEmitter( 1500-ntohs(ip->ip_tos), 0);
+        p->ChangeEmitter( 150, 0);
+        p->ChangeEmitter( 148+ip->ip_p, 0);
 
         return;
     }
@@ -123,7 +124,7 @@ void Callback_ProcessPacket(u_char *useless, const pcap_pkthdr *pkthdr, const u_
     }
 
     //p->ChangeEmitter( ntohs(tcp->th_dport)&1023|ntohs(tcp->th_sport), 1);
-    p->ChangeEmitter( ntohs(tcp->th_dport), 1);
+    //p->ChangeEmitter( ntohs(tcp->th_dport), 1);
     p->ChangeEmitter( ntohs(tcp->th_sport), 1);
 
 }

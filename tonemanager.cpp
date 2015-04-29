@@ -11,8 +11,10 @@
 //constructor
 ToneManager::ToneManager(int BaseNumberOfTones=TONE_COUNT){
 
-    numberOfTones = BaseNumberOfTones;
-    currentUncommonTone = 0;
+    toneBaseFrequency=0;
+    currentUncommonTone=0;
+    numberOfTones=BaseNumberOfTones;
+
     qsrand(time(NULL));
 
     m_format.setSampleRate(44100);
@@ -58,9 +60,14 @@ void ToneManager::SLOT_InitializeTones(){
     currentTone = 0;
 }
 
+void ToneManager::SLOT_SetBaseFrequency(int baseFrequency){
+    toneBaseFrequency = baseFrequency;
+}
+
 /** \attention modify the frequency for "niceness" */
 void ToneManager::SLOT_SetFrequency(int frequency, int often){
 
+    frequency+=toneBaseFrequency;
 
     int toneToModify;
 
@@ -159,9 +166,9 @@ ToneObject* ToneManager::AddTone(int i){
 
     ToneObject *newTone = new ToneObject;
     if( i%2)
-        newTone->theTone = new tone(1, 100*i+400, NULL );
+        newTone->theTone = new tone(1, toneBaseFrequency+100*i+400, NULL );
     else
-        newTone->theTone = new tone(1, (100*i)+i + 300, NULL );
+        newTone->theTone = new tone(1, toneBaseFrequency+(100*i)+i + 300, NULL );
 
     newTone->theThread = new QThread;
 

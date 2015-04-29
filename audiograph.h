@@ -26,6 +26,12 @@ class AudioGraph : public QObject
 public:
     explicit AudioGraph(Q3DScatter *scatter=0);
     QWidget *container;
+    Q3DScatter *m_graph;
+
+    void AddData(int value);
+
+protected:
+    float time;
 
 };
 

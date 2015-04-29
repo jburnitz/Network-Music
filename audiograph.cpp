@@ -9,11 +9,15 @@ const float curveDivider = 3.0f;
 const int lowerNumberOfItems = 900;
 const float lowerCurveDivider = 0.75f;
 
-AudioGraph::AudioGraph(Q3DScatter *scatter){
+AudioGraph::AudioGraph(Q3DScatter *scatter)
+    : time(0.0f)
+{
 
-    Q3DScatter *m_graph = new Q3DScatter();
+
+    m_graph = new Q3DScatter();
     container = QWidget::createWindowContainer(m_graph);
 
+    //setting up some boilerplate windowing
     QSize screenSize = m_graph->screen()->size();
     container->setMinimumSize(QSize(screenSize.width() / 2, screenSize.height() / 1.5));
     container->setMaximumSize(screenSize);
@@ -39,5 +43,14 @@ AudioGraph::AudioGraph(Q3DScatter *scatter){
     series->setMeshSmooth(true);
     m_graph->addSeries(series);
 
+    m_graph->axisX()->setAutoAdjustRange(true);
+    m_graph->axisY()->setAutoAdjustRange(true);
+    m_graph->axisZ()->setAutoAdjustRange(true);
+
+}
+
+//taking some fresh data and adding it to the graph
+void AudioGraph::AddData(int value){
+    m_graph->seriesList().at(0)->dataProxy()->addItem(QScatterDataItem(QVector3D(0,time,time++)));
 }
 

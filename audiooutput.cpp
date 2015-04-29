@@ -67,7 +67,7 @@
 #define TONE_MIN (3)
 #define TONE_COUNT (5) //default tone count
 
-#define MAX_SLICES (15)
+#define MAX_SLICES (10)
 
 /** \abstract Controller class that manages the tone players and receives input from pcap */
 AudioTest::AudioTest()
@@ -95,7 +95,8 @@ void AudioTest::Setup(){
     qDebug() << Q_FUNC_INFO << "   connecting slots";
     connect( this, SIGNAL(SIGNAL_BEGIN_TONES()), this->toneManager, SLOT(SLOT_InitializeTones()) );
     connect( this->m_volumeSlider, SIGNAL(valueChanged(int)), this->toneManager, SLOT(SLOT_VolumeChanged(int)) );
-    connect( this->m_numberOfTones, SIGNAL(valueChanged(int)), this->toneManager, SLOT(SLOT_NumberOfTonesChanged(int)) );
+    connect( this->m_numberOfTones, SIGNAL(valueChanged(int)), this->toneManager, SLOT(SLOT_NumberOfTonesChanged(int)) , Qt::QueuedConnection);
+    connect( m_baseFrequency, SIGNAL(valueChanged(int)), this->toneManager, SLOT(SLOT_SetBaseFrequency(int)), Qt::QueuedConnection );
 
     //connect(m_frequencySlider, SIGNAL(valueChanged(int)), this, SLOT(frequencyChanged(int)));
 
@@ -161,9 +162,17 @@ void AudioTest::initializeWindow()
     m_numberOfTones->setMinimum(TONE_MIN);
     m_numberOfTones->setValue(TONE_COUNT);
 
+    m_baseFrequencyLabel = new QLabel("Base Tone Frequency");
+    m_baseFrequency = new QSpinBox();
+    m_baseFrequency->setRange(0,1000);
+    m_baseFrequency->setSingleStep(5);
+
     QHBoxLayout *toneChooserLayoutBox = new QHBoxLayout;
     toneChooserLayoutBox->addWidget(m_numberOfTonesLabel);
     toneChooserLayoutBox->addWidget(m_numberOfTones);
+
+    toneChooserLayoutBox->addWidget(m_baseFrequencyLabel);
+    toneChooserLayoutBox->addWidget(m_baseFrequency);
 
     layout->addLayout(toneChooserLayoutBox);
     qDebug() << "    tone number chooser created";
@@ -263,7 +272,7 @@ void AudioTest::PcapButtonPressed(){
     qDebug() << "   Connecting slots";
     connect(this, SIGNAL(SIGNAL_BEGIN_CAPTURE()), pk, SLOT(SLOT_CAPTURE()) );
     connect(pk, SIGNAL(SIG_NEW_TONE(int, int)), toneManager, SLOT(SLOT_SetFrequency(int, int)) );
-    connect(pk, SIGNAL(SIG_NEW_TONE(int, int)), this, SLOT(UpdateChart(int,int)) );
+    connect(pk, SIGNAL(SIG_NEW_TONE(int, int)), this, SLOT(UpdateChart(int,int)), Qt::QueuedConnection );
 
     qDebug() << "   Starting pkThread";
     PacketCaptureThread->start();
@@ -292,16 +301,18 @@ void AudioTest::UpdateChart(int freq, int priority){
     //use take(slice*)
     //and delete it
     if(series->count() > MAX_SLICES){
-        int rSlice = rand() % MAX_SLICES;
-        QPieSlice* theSliceToBeRemoved = series->slices().takeAt(rSlice);
+        int rSlice = rand() % (MAX_SLICES-1);
+        QPieSlice* theSliceToBeRemoved = series->slices().at(rSlice);
 
         //the label of the pie slice is also the key in the slices hashmap
         slices.remove( theSliceToBeRemoved->label().toInt() );
 
         series->remove( theSliceToBeRemoved );
 
-        //fixed that memory leak haha
-        delete theSliceToBeRemoved;
+        //series->remove deletes also
+        //delete theSliceToBeRemoved;
     }
 
+
+    //audioGraph->AddData(freq);
 }

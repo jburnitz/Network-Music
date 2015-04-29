@@ -51,8 +51,13 @@ protected:
     QLabel *m_volumeLabel;
     QSlider *m_volumeSlider;
     QSlider *m_frequencySlider;
+
     QSpinBox *m_numberOfTones;
     QLabel *m_numberOfTonesLabel;
+
+    QSpinBox *m_baseFrequency;
+    QLabel *m_baseFrequencyLabel;
+
     QStatusBar *m_statusBar;
     QLabel *m_statusBarLabel;
 
