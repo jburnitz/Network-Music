@@ -3,6 +3,7 @@
 using namespace QtDataVisualization;
 
 #define TIMER_TICK (1000)
+#define TIME_RANGE (30) //30 seconds
 
 const int numberOfItems = 3600;
 const float curveDivider = 3.0f;
@@ -79,5 +80,8 @@ void AudioGraph::AddData(int value){
 void AudioGraph::SLOT_TimerTick(){
     time++;
     m_graph->axisX()->setMax(time);
+
+    if(m_graph->axisX()->max() > TIME_RANGE )
+        m_graph->axisX()->setMin(time-TIME_RANGE);
 }
 
