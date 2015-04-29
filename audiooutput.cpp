@@ -56,6 +56,7 @@
 #include "tone.h"
 #include "packetcapturer.h"
 #include "tonemanager.h"
+#include "audiograph.h"
 
 #define SUSPEND_LABEL   "Suspend playback"
 #define RESUME_LABEL    "Resume playback"
@@ -80,8 +81,6 @@ AudioTest::AudioTest()
 //setup the non graphical elements
 void AudioTest::Setup(){
     qDebug() << Q_FUNC_INFO << " begin";
-
-
 
     qDebug() << Q_FUNC_INFO << "   creating ToneManager";
     toneManager = new ToneManager(TONE_COUNT);
@@ -202,6 +201,7 @@ void AudioTest::initializeWindow()
     SetupGraph();
 
     layout->addWidget(chartView);
+    //layout->addWidget(audioGraph->container);
 
     layout->addWidget(m_statusBar);
 
@@ -213,6 +213,9 @@ void AudioTest::initializeWindow()
     QWidget *const windowPtr = window.take(); // ownership transferred
 
     windowPtr->show();
+    audioGraphWindow = new QMainWindow(this);
+    audioGraphWindow->setCentralWidget(audioGraph->container);
+    audioGraphWindow->show();
 
     qDebug() << "   finished setting up GUI";
     qDebug()<< Q_FUNC_INFO << " end";
@@ -221,22 +224,6 @@ void AudioTest::initializeWindow()
 void AudioTest::SetupGraph(){
 
         series = new QPieSeries();
-        /*
-        series->append("Jane", 1);
-        series->append("Joe", 1);
-        series->append("Andy", 1);
-        series->append("Barbara", 1);
-        series->append("Axel", 1);
-        */
-        /*
-        foreach (slice, series->slices() ){
-            slice->setLabelVisible();
-        }
-        */
-            //slice->setExploded();
-
-        //slice->setPen(QPen(Qt::darkGreen, 2));
-        //slice->setBrush(Qt::green);
 
         series->append("Silence", 1);
         series->slices().at(0)->setLabelVisible();
@@ -249,6 +236,7 @@ void AudioTest::SetupGraph(){
         chartView = new QChartView(chart);
         chartView->setRenderHint(QPainter::Antialiasing);
 
+        audioGraph = new AudioGraph();
 }
 
 /** \brief Creating a new packetcapturer instance and moves it to it's own thread */
@@ -292,6 +280,8 @@ void AudioTest::UpdateChart(int freq, int priority){
         qreal val = slices[freq]->value();
         slices[freq]->setValue(++val);
     }
+
+    //if(slices.size())
 
 }
 

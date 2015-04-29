@@ -23,11 +23,14 @@ class PacketCapturer;
 class tone;
 class Generator;
 class ToneManager;
+class AudioGraph;
 
 #include <QtCharts/QChartView>
 #include <QtCharts/QPieSeries>
 #include <QtCharts/QPieSlice>
 #include <QtCharts>
+
+#include <QtDataVisualization>
 
 class AudioTest : public QMainWindow
 {
@@ -59,6 +62,9 @@ protected:
     QChartView *chartView;
 
     QHash<int, QPieSlice*> slices;
+
+    AudioGraph* audioGraph;
+    QMainWindow* audioGraphWindow;
 
     //useless?
     QString *m_statusBarLabelString;
