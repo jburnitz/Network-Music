@@ -39,7 +39,6 @@ class AudioTest : public QMainWindow
 public:
     AudioTest();
     void Setup();
-    ~AudioTest();
 
 protected:
     void initializeWindow();

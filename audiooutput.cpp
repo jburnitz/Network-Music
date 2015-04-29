@@ -305,9 +305,3 @@ void AudioTest::UpdateChart(int freq, int priority){
     }
 
 }
-
-
-AudioTest::~AudioTest()
-{
-    delete pk;
-}
