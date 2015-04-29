@@ -50,6 +50,7 @@
 
 #include <QThread>
 
+
 #include <pcap.h>
 
 #include "audiooutput.h"
@@ -66,10 +67,15 @@
 #define TONE_MIN (3)
 #define TONE_COUNT (5) //default tone count
 
+#define MAX_SLICES (15)
+
 /** \abstract Controller class that manages the tone players and receives input from pcap */
 AudioTest::AudioTest()
 {
     PacketCaptureThread = NULL;
+
+    srand(time(NULL));
+
 
     //set up the graphical stuff
     qDebug() << "setting up GUI";
@@ -269,6 +275,7 @@ void AudioTest::PcapButtonPressed(){
     qDebug()<< Q_FUNC_INFO << " end";
 }
 
+//since this a graphical object, I'm processing on the UI thread
 void AudioTest::UpdateChart(int freq, int priority){
 
     if( !slices.contains(freq) ){
@@ -281,7 +288,21 @@ void AudioTest::UpdateChart(int freq, int priority){
         slices[freq]->setValue(++val);
     }
 
-    //if(slices.size())
+    //if there are too many, randomly pick one and remove it
+    //use take(slice*)
+    //and delete it
+    if(series->count() > MAX_SLICES){
+        int rSlice = rand() % MAX_SLICES;
+        QPieSlice* theSliceToBeRemoved = series->slices().takeAt(rSlice);
+
+        //the label of the pie slice is also the key in the slices hashmap
+        slices.remove( theSliceToBeRemoved->label().toInt() );
+
+        series->remove( theSliceToBeRemoved );
+
+        //fixed that memory leak haha
+        delete theSliceToBeRemoved;
+    }
 
 }
 

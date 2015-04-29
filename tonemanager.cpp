@@ -118,6 +118,7 @@ void ToneManager::SLOT_NumberOfTonesChanged(int newNumberOfTones){
             //emit( this->Start_Audio() );
             qDebug() << "adding new tone";
             connect(this, SIGNAL(Start_Audio()), to->theTone, SLOT(DoStartPlaying()) );
+            connect(this, SIGNAL(Set_Volume(int)), to->theTone, SLOT(OnVolumeChanged(int)), Qt::QueuedConnection);
             emit( Start_Audio() );
             disconnect(this, SIGNAL(Start_Audio()), to->theTone, SLOT(DoStartPlaying()) );
         }

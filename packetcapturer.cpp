@@ -84,7 +84,7 @@ void Callback_ProcessPacket(u_char *useless, const pcap_pkthdr *pkthdr, const u_
     ethernet = (struct sniff_ethernet*)(packet);
 
     //QString("%1").arg(yourNumber, 5, 10, QChar('0'));
-    qDebug() << "ethernet type:" << QString("%1").arg(ntohs(ethernet->ether_type), 4, 16).prepend("0x") << ntohs(ethernet->ether_type);
+    //qDebug() << "ethernet type:" << QString("%1").arg(ntohs(ethernet->ether_type), 4, 16).prepend("0x") << ntohs(ethernet->ether_type);
 
     if(ntohs(ethernet->ether_type) == ETHERTYPE_EAP){
 
@@ -122,33 +122,10 @@ void Callback_ProcessPacket(u_char *useless, const pcap_pkthdr *pkthdr, const u_
         return;
     }
 
-    //qDebug() << "packet:sport" << ntohs( tcp->th_sport ) << " dport:" << ntohs( tcp->th_dport );
-    /*
-    if( ntohs(tcp->th_sport) == 443 )
-        ((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_dport) );
-    if( ntohs(tcp->th_dport) == 443 )
-        ((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_sport) );
-        */
+    //p->ChangeEmitter( ntohs(tcp->th_dport)&1023|ntohs(tcp->th_sport), 1);
+    p->ChangeEmitter( ntohs(tcp->th_dport), 1);
+    p->ChangeEmitter( ntohs(tcp->th_sport), 1);
 
-    /*
-    ((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_dport)&511 );
-    ((PacketCapturer*)parent)->ChangeEmitter( (ntohs(tcp->th_dport)&511) +5);
-    */
-    //((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_sport)&8191 );
-    //((PacketCapturer*)parent)->ChangeEmitter( ntohs(tcp->th_dport)&1023|ntohs(tcp->th_sport) );
-
-
-    p->ChangeEmitter(ntohs(tcp->th_dport)&1023|ntohs(tcp->th_sport), 1);
-
-    //u_short addr = ntohl((ip->ip_dst.s_addr)&0xFFF);
-
-   //if(addr == recentFreq)
-        //((PacketCapturer*)parent)->ChangeEmitter( addr );
-
-    //recentFreq = addr;
-
-    //the remaining bytes is the TCP data...do I care?
-    //payload = (u_char *)(packet + SIZE_ETHERNET + size_ip + size_tcp);
 }
 
 
@@ -161,9 +138,9 @@ PacketCapturer::PacketCapturer(QObject *parent) : QObject(parent)
 //constructor
 PacketCapturer::PacketCapturer(const char *deviceName){
 
-    qDebug() << "setting filter";
-    //define my filter
-    char filter_exp[] = "port 80";
+    qDebug() << Q_FUNC_INFO << "setting filter";
+    //define my filter only care about ip stuff to and from this machine
+    char filter_exp[] = "ip";
 
     //copy the deviceName into the device I'll be using
     dev = (char*)malloc(10*sizeof(char));
@@ -177,20 +154,21 @@ PacketCapturer::PacketCapturer(const char *deviceName){
         qDebug() << Q_FUNC_INFO << "Couldn't open device" << dev << errbuf;
         exit(-1);
     }
-    // Compile and apply the filter
+    // Compile the filter
     qDebug() << Q_FUNC_INFO << "compiling filter";
     if (pcap_compile(handle, &fp, filter_exp, 0, net) == -1) {
-        qDebug() << "Couldn't parse filter" << filter_exp << pcap_geterr(handle);
+        qDebug() << Q_FUNC_INFO << "Couldn't parse filter" << filter_exp << pcap_geterr(handle);
         exit(-1);
     }
 
     //setting the filter
-    /*
     if (pcap_setfilter(handle, &fp) == -1) {
-        qDebug() << "Couldn't install filter" << filter_exp << pcap_geterr(handle);
+        qDebug() << Q_FUNC_INFO << "Couldn't install filter" << filter_exp << pcap_geterr(handle);
         exit(-1);
     }
-    */
+
+    //associating the object instance within this static function
+    /** \note seems like a bad design but it works */
     packetprocess::parent = this;
 
     qDebug() << Q_FUNC_INFO << " PCAP setup correctly";
