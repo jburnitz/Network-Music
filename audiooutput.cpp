@@ -50,14 +50,13 @@
 
 #include <QThread>
 
-
+//used only for enumerating devices for GUI elements
 #include <pcap.h>
 
 #include "audiooutput.h"
 #include "tone.h"
 #include "packetcapturer.h"
 #include "tonemanager.h"
-#include "audiograph.h"
 
 #define SUSPEND_LABEL   "Suspend playback"
 #define RESUME_LABEL    "Resume playback"
@@ -66,8 +65,6 @@
 #define TONE_MAX (15) //Maximum number of threads
 #define TONE_MIN (3)
 #define TONE_COUNT (5) //default tone count
-
-#define MAX_SLICES (10)
 
 /** \abstract Controller class that manages the tone players and receives input from pcap */
 AudioTest::AudioTest()
@@ -213,10 +210,7 @@ void AudioTest::initializeWindow()
     m_statusBar->addPermanentWidget(m_statusBarLabel, 1);
 
     //setting up the graph pointers
-    SetupGraph();
-
-    layout->addWidget(chartView);
-    //layout->addWidget(audioGraph->container);
+    //SetupGraph();
 
     layout->addWidget(m_statusBar);
 
@@ -228,31 +222,11 @@ void AudioTest::initializeWindow()
     QWidget *const windowPtr = window.take(); // ownership transferred
 
     windowPtr->show();
-    audioGraphWindow = new QMainWindow(this);
-    audioGraphWindow->setCentralWidget(audioGraph->container);
-    audioGraphWindow->show();
 
     qDebug() << "   finished setting up GUI";
     qDebug()<< Q_FUNC_INFO << " end";
 }
 
-void AudioTest::SetupGraph(){
-
-        series = new QPieSeries();
-
-        series->append("Silence", 1);
-        series->slices().at(0)->setLabelVisible();
-
-        chart = new QChart();
-        chart->addSeries(series);
-        chart->setTitle("DataTypes");
-        chart->legend()->hide();
-
-        chartView = new QChartView(chart);
-        chartView->setRenderHint(QPainter::Antialiasing);
-
-        audioGraph = new AudioGraph();
-}
 
 /** \brief Creating a new packetcapturer instance and moves it to it's own thread */
 void AudioTest::PcapButtonPressed(){
@@ -287,32 +261,5 @@ void AudioTest::PcapButtonPressed(){
 //since this a graphical object, I'm processing on the UI thread
 void AudioTest::UpdateChart(int freq, int priority){
 
-    if( !slices.contains(freq) ){
-        QPieSlice* slice = series->append(QString::number(freq),1);
-        slice->setLabelVisible(true);
 
-        slices.insert( freq, slice );
-    }else{
-        qreal val = slices[freq]->value();
-        slices[freq]->setValue(++val);
-    }
-
-    //if there are too many, randomly pick one and remove it
-    //use take(slice*)
-    //and delete it
-    if(series->count() > MAX_SLICES){
-        int rSlice = rand() % (MAX_SLICES-1);
-        QPieSlice* theSliceToBeRemoved = series->slices().at(rSlice);
-
-        //the label of the pie slice is also the key in the slices hashmap
-        slices.remove( theSliceToBeRemoved->label().toInt() );
-
-        series->remove( theSliceToBeRemoved );
-
-        //series->remove deletes also
-        //delete theSliceToBeRemoved;
-    }
-
-
-    audioGraph->AddData(freq);
 }
