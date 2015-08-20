@@ -142,7 +142,9 @@ void AudioTest::initializeWindow()
         for(d=alldevs; d; d=d->next)
         {
             qDebug() << "       device:" << d->name;
-            m_networkDeviceBox->addItem( QString(d->name)/*.append(" ").append(d->description)*/  );
+            #ifdef WIN32
+            m_networkDeviceBox->addItem( QString(d->name) );
+            #endif
 
         }
         qDebug() << "   got all devices";
