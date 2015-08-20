@@ -143,11 +143,25 @@ void AudioTest::initializeWindow()
         {
             qDebug() << "       device:" << d->name;
             #ifdef WIN32
+            //nobody recognizes a uuid NPF\\{adsfasdfa}\{asdfs}...
+            m_networkDeviceBox->addItem( QString(d->description) );
+            #else
+            //linux everyone knows eth0, wlan0...
             m_networkDeviceBox->addItem( QString(d->name) );
             #endif
+            m_networkDeviceList.append(QString(d->name));
 
         }
         qDebug() << "   got all devices";
+
+        for(int i=0; i<m_networkDeviceBox->count(); i++){
+            m_networkDeviceBox->setCurrentIndex(i);
+            if (m_networkDeviceBox->currentText().contains("eth") ){
+                break;
+            }
+
+        }
+
         layout->addWidget(m_networkDeviceBox);
         qDebug() << "  widget added";
     }
@@ -215,9 +229,6 @@ void AudioTest::initializeWindow()
     m_statusBarLabel = new QLabel( *m_statusBarLabelString);
     m_statusBar->addPermanentWidget(m_statusBarLabel, 1);
 
-    //setting up the graph pointers
-    //SetupGraph();
-
     layout->addWidget(m_statusBar);
 
     window->setLayout(layout.data());
@@ -244,7 +255,7 @@ void AudioTest::PcapButtonPressed(){
     }
 
     qDebug() << "   Creating new PacketCapturer with dev=" << m_networkDeviceBox->currentText();
-    pk = new PacketCapturer( m_networkDeviceBox->currentText().toStdString().c_str() );
+    pk = new PacketCapturer( m_networkDeviceList.at( m_networkDeviceBox->currentIndex() ).toStdString().c_str() );
 
     qDebug() << "   Moving pk to packetCaptureThread";
     pk->moveToThread(PacketCaptureThread);

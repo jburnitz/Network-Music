@@ -39,6 +39,8 @@ protected:
 
     //graphical elements
     QComboBox *m_networkDeviceBox;
+    //Isomorphic array of pcap compatible names
+    QStringList m_networkDeviceList;
     //QComboBox *m_audioDeviceBox;
     QLabel *m_volumeLabel;
     QSlider *m_volumeSlider;
