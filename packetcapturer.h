@@ -4,12 +4,7 @@
 #include <QObject>
 #include <pcap.h>
 
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netinet/ip.h>
-#include <netinet/ether.h>
-#include <net/ethernet.h>
-#include <arpa/inet.h>
+
 
 class PacketCapturer : public QObject
 {

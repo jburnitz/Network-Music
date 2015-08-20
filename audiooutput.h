@@ -53,9 +53,6 @@ protected:
     QStatusBar *m_statusBar;
     QLabel *m_statusBarLabel;
 
-    AudioGraph* audioGraph;
-    QMainWindow* audioGraphWindow;
-
     //useless?
     QString *m_statusBarLabelString;
 

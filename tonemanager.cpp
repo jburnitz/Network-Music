@@ -5,6 +5,7 @@
 
 #include <QDebug>
 #include <QThread>
+#include <QTime>
 
 #define TONE_COUNT (5) //base number of threads/tones
 
@@ -15,7 +16,7 @@ ToneManager::ToneManager(int BaseNumberOfTones=TONE_COUNT){
     currentUncommonTone=0;
     numberOfTones=BaseNumberOfTones;
 
-    qsrand(time(NULL));
+    qsrand(QTime::currentTime().msec());
 
     m_format.setSampleRate(44100);
     m_format.setChannelCount(2);

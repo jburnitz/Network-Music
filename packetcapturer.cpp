@@ -7,6 +7,8 @@
 #include <QApplication>
 
 #define ETHERTYPE_EAP (0x888e) /* eap authentication */
+#define ETHER_ADDR_LEN 6
+#define ETHERTYPE_IP (0x0800)
 
 namespace packetprocess {
 

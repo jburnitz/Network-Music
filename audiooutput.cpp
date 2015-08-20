@@ -51,7 +51,11 @@
 #include <QThread>
 
 //used only for enumerating devices for GUI elements
+#ifdef WIN32
+#include <win/WpdPack/Include/pcap.h>
+#else
 #include <pcap.h>
+#endif
 
 #include "audiooutput.h"
 #include "tone.h"
