@@ -149,13 +149,13 @@ PacketCapturer::PacketCapturer(const char *deviceName){
     char filter_exp[] = "ip";
 
     //copy the deviceName into the device I'll be using
-    dev = (char*)malloc(10*sizeof(char));
+    dev = (char*)malloc(80*sizeof(char));
     strcpy(dev, deviceName);
 
 
     //Open the session in promiscuous mode
     qDebug() << Q_FUNC_INFO << "Opening Device" << dev;
-    handle = pcap_open_live(dev, BUFSIZ, 1, 1000, errbuf);
+    handle = pcap_open_live(deviceName, BUFSIZ, 1, 1000, errbuf);
     if (handle == NULL) {
         qDebug() << Q_FUNC_INFO << "Couldn't open device" << dev << errbuf;
         exit(-1);
@@ -189,7 +189,9 @@ void PacketCapturer::ChangeEmitter(int value, int often){
 //a slot is needed for multi thread interfacing
 void PacketCapturer::SLOT_CAPTURE(){
     qDebug() << Q_FUNC_INFO << " Setting up capture loop";
-    pcap_loop( handle, 0, ((pcap_handler)packetprocess::Callback_ProcessPacket), NULL);
+    int ret = pcap_loop( handle, 0, ((pcap_handler)packetprocess::Callback_ProcessPacket), NULL);
+    qDebug() << Q_FUNC_INFO << " Done Setting up capture loop";
+
 }
 
 
